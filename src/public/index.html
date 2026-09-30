@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Mensagens</title>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <h1>Mensagens</h1>
+
+  <form id="formMensagem">
+    <label>
+      ID da conversa:
+      <input type="number" id="conversaId" value="1" max="10" min="0" required>
+    </label>
+
+    <br><br>
+
+    <label>
+      Nome do usuário:
+      <input type="text" id="usuarioNome" placeholder="Seu nome" required>
+    </label>
+
+    <br><br>
+
+    <label>
+      Mensagem:
+      <input type="text" id="texto" required>
+    </label>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <h2>Lista de mensagens</h2>
+
+  <ul id="listaMensagens"></ul>

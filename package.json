@@ -1,0 +1,17 @@
+{
+  "name": "projeto-1",
+  "version": "1.0.0",
+  "description": "Aplicacao de mensagens instantaneas com Node.js e MongoDB",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongodb": "^6.20.0"
+  }
+}
