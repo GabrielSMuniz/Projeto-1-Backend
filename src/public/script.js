@@ -4,6 +4,7 @@ const lista = document.getElementById("listaMensagens");
 const conversaIdInput = document.getElementById("conversaId");
 const usuarioNomeInput = document.getElementById("usuarioNome");
 const textoInput = document.getElementById("texto");
+const btnApagar = document.getElementById("btnApagar");
 
 async function carregarMensagens() {
     const conversaId = conversaIdInput.value;
@@ -11,7 +12,7 @@ async function carregarMensagens() {
     const resposta = await fetch(
         `/conversas/${conversaId}/mensagens`
     );
-    
+
     const mensagens = await resposta.json();
 
     lista.innerHTML = "";
@@ -26,6 +27,22 @@ async function carregarMensagens() {
     });
 }
 
+btnApagar.addEventListener("click", async () => {
+    const conversaId = conversaIdInput.value;
+    const usuarioNome = usuarioNomeInput.value;
+
+    const resposta = await fetch(`/conversas/${conversaId}/${usuarioNome}/`, {
+        method: "DELETE"
+    });
+
+    if (!resposta.ok) {
+        alert("Erro ao apagar mensagens");
+        return;
+    }
+
+    carregarMensagens();
+});
+
 form.addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -34,7 +51,7 @@ form.addEventListener("submit", async event => {
         usuarioNome: usuarioNomeInput.value,
         texto: textoInput.value
     };
-    
+
     const resposta = await fetch("/mensagens", {
         method: "POST",
         headers: {
@@ -59,3 +76,5 @@ conversaIdInput.addEventListener(
 );
 
 carregarMensagens();
+
+setInterval(carregarMensagens, 1000);

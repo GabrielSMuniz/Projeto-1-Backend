@@ -1,39 +1,39 @@
-const db_mongoose = require('./config/db_mongoose');
 const mongoose = require('mongoose');
-
-const Usuario = require("./classes/Usuario.js");
-const Conversa = require("./classes/Conversa.js");
 
 const path = require('path');
 const express = require('express');
 const app = express();
 
+const db = require('./config/database.js');
 
-mongoose.connect(
-  db_mongoose.connection
-).then(() => {
-  console.log('conectado');
-}).catch((err) => {
-  console.log(err);
-});
+const usuarioController = require('./controllers/UsuarioController.js');
+
+const usuarioRoutes = require('./routes/usuarioRoutes.js');
+
+db()
 
 const conn = mongoose.connection;
 
-// conn.collection('mensagens').insertOne({ remetente: "Gabriel", conteudo: "Olá, tudo bem?" });
-
-// conn.collection('mensagens').drop().then(() => {
-//   console.log('Coleção mensagens excluída com sucesso.');
-// });
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/api/usuarios', usuarioRoutes);
+
+
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './public/index.html'))
 })
 
-app.get("/script.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "script.js"));
+app.delete(`/conversas/:conversaId/:nomeUsuario`, (req, res) => {
+  const nomeUsuario = req.params.nomeUsuario;
+  const conversaId = req.params.conversaId;
+
+  (async () => {
+    await conn.collection('mensagens'+conversaId).deleteMany({ remetente: nomeUsuario });
+    res.status(200).send({ mensagem: "Mensagens apagadas com sucesso" });
+  })();
 });
 
 app.get('/conversas/:id/mensagens', (req, res) => {
@@ -48,7 +48,6 @@ app.get('/conversas/:id/mensagens', (req, res) => {
 
 app.post('/mensagens', (req, res) => {
   const { conversaId, usuarioNome, texto } = req.body;
-  console.log(usuarioNome, texto);
   conn.collection('mensagens'+conversaId).insertOne({ remetente: usuarioNome, conteudo: texto });
   res.status(201).send({ menssagem: "Mensagem enviada com sucesso" });
 });
