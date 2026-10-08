@@ -10,16 +10,16 @@
 
   <form id="formMensagem">
     <label>
+      Nome do usuário: <p id="nomeUsuario"></p>
+    </label>
+    <button type="button" id="btnLogout">Logout</button>
+    <br><br>
+    <label>
       Canal da conversa:
       <input type="number" id="conversaId" value="1" max="10" min="0" required>
     </label>
 
-    <br><br>
 
-    <label>
-      Nome do usuário:
-      <input type="text" id="usuarioNome" placeholder="Seu nome" required>
-    </label>
 
     <br><br>
 
@@ -31,6 +31,7 @@
     <button type="submit">Enviar</button>
     <button type="button" id="btnApagar">Apagar mensagens</button>
   </form>
+
 
   <h2>Lista de mensagens</h2>
 
