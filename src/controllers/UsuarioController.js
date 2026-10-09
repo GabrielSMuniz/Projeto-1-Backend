@@ -1,5 +1,6 @@
 const Usuario = require("../models/Usuario");
 const jwt = require("jsonwebtoken");
+const registrarErro = require('../utils/Logger');
 
 class UsuarioController {
   async criar(req, res) {
@@ -7,23 +8,28 @@ class UsuarioController {
       const { nome, email, senha, confirmarSenha } = req.body;
 
       if (!nome || !email || !senha) {
+        registrarErro(new Error('Nome, e-mail e senha são obrigatórios'), 'Criar usuário');
         return res.status(400).json({ erro: 'Nome, e-mail e senha são obrigatórios' });
       }
 
       if (confirmarSenha && senha !== confirmarSenha) {
+        registrarErro(new Error('As senhas não coincidem'), 'Criar usuário');
         return res.status(400).json({ erro: 'As senhas não coincidem' });
       }
 
       const usuarioExistente = await Usuario.findOne({ email });
 
       if (usuarioExistente) {
-        return res.status(409).json({ erro: 'Este email já está cadastrado' });
+        registrarErro(new Error('Este e-mail já está cadastrado'), 'Criar usuário');
+        res.flash('erro', 'Este email já está cadastrado');
+        return res.redirect('/cadastro');
       }
 
       await Usuario.create({ nome, email, senha });
 
       return res.redirect('/login');
     } catch (error) {
+      registrarErro(error, 'Criar usuário');
       return res.status(500).json({
         erro: 'Erro ao criar usuário',
         detalhes: error.message
@@ -36,12 +42,14 @@ class UsuarioController {
       const usuarios = await Usuario.find().select('-senha');
       return res.status(200).json(usuarios);
     } catch (error) {
+      registrarErro(error, 'Listar usuários');
       return res.status(500).json({ erro: 'Erro ao listar usuários' });
     }
   }
 
   async me(req, res) {
     if (!req.usuario) {
+      registrarErro(new Error('Usuário não autenticado'), 'Consultar usuário autenticado');
       return res.status(401).json({ erro: 'Não autenticado' });
     }
 
@@ -53,11 +61,13 @@ class UsuarioController {
       const usuario = await Usuario.findById(req.params.id).select('-senha');
 
       if (!usuario) {
+        registrarErro(new Error('Usuário não encontrado'), 'Buscar usuário por ID');
         return res.status(404).json({ erro: 'Usuário não encontrado' });
       }
 
       return res.status(200).json(usuario);
     } catch (error) {
+      registrarErro(error, 'Buscar usuário por ID');
       return res.status(400).json({ erro: 'ID inválido' });
     }
   }
@@ -68,11 +78,13 @@ class UsuarioController {
       const usuario = await Usuario.findOne({ email }).select('-senha');
 
       if (!usuario) {
+        registrarErro(new Error('Usuário não encontrado'), 'Buscar usuário por e-mail');
         return res.status(404).json({ erro: 'Usuário não encontrado' });
       }
 
       return res.status(200).json(usuario);
     } catch (error) {
+      registrarErro(error, 'Buscar usuário por e-mail');
       return res.status(400).json({ erro: 'Email inválido' });
     }
   }
@@ -89,6 +101,7 @@ class UsuarioController {
       ).select('-senha');
 
       if (!usuario) {
+        registrarErro(new Error('Usuário não encontrado'), 'Atualizar usuário');
         return res.status(404).json({ erro: 'Usuário não encontrado' });
       }
 
@@ -97,6 +110,7 @@ class UsuarioController {
         usuario
       });
     } catch (error) {
+      registrarErro(error, 'Atualizar usuário');
       return res.status(400).json({
         erro: 'Erro ao atualizar usuário',
         detalhes: error.message
@@ -109,11 +123,13 @@ class UsuarioController {
       const usuario = await Usuario.findByIdAndDelete(req.params.id);
 
       if (!usuario) {
+        registrarErro(new Error('Usuário não encontrado'), 'Remover usuário');
         return res.status(404).json({ erro: 'Usuário não encontrado' });
       }
 
       return res.status(204).send();
     } catch (error) {
+      registrarErro(error, 'Remover usuário');
       return res.status(400).json({ erro: 'ID inválido' });
     }
   }
@@ -125,7 +141,9 @@ class UsuarioController {
       const usuario = await Usuario.findOne({ email }).select('+senha');
 
       if (!usuario || usuario.senha !== senha) {
-        return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        registrarErro(new Error('Credenciais inválidas'), 'Realizar login');
+        res.flash('erro', 'Email ou senha inválidos');
+        return res.redirect('/login');
       }
 
       const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET || 'segredo', {
@@ -144,10 +162,9 @@ class UsuarioController {
 
       return res.redirect('/');
     } catch (error) {
-      return res.status(500).json({
-        erro: 'Erro ao realizar login',
-        detalhes: error.message
-      });
+      registrarErro(error, 'Realizar login');
+      res.flash('erro', 'Erro ao realizar login. Tente novamente.');
+      return res.redirect('/login');
     }
   }
 

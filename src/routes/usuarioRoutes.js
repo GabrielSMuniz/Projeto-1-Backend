@@ -7,6 +7,7 @@ const router = express.Router();
 router.use(exigirAutenticacao);
 
 router.get("/", usuarioController.listar);
+router.get("/me", usuarioController.me);
 router.get("/:id", usuarioController.buscarPorId);
 router.get("/email/", usuarioController.buscarPorEmail);
 router.put("/:id", usuarioController.atualizar);

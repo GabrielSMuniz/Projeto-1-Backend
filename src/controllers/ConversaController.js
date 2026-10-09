@@ -2,6 +2,7 @@ const Conversa = require("../models/Conversa.js");
 const Mensagem = require("../models/Mensagem.js");
 const Usuario = require("../models/Usuario.js");
 const { Types } = require('mongoose');
+const registrarErro = require('../utils/Logger');
 
 class ConversaController {
   async criar(req, res) {
@@ -34,12 +35,14 @@ class ConversaController {
       const participantes = [...new Set(ids.map(id => id.toString()))];
 
       if (participantes.length < 2) {
+        registrarErro(new Error('É necessário ao menos dois participantes para a conversa'), 'Criar conversa');
         return res.status(400).json({ erro: 'É necessário ao menos dois participantes para a conversa.' });
       }
 
       const conversa = await Conversa.create({ participantes });
       return res.status(201).json(conversa);
     } catch (error) {
+      registrarErro(error, 'Criar conversa');
       return res.status(500).json({
         erro: 'Erro ao criar conversa',
         detalhes: error.message
@@ -50,6 +53,7 @@ class ConversaController {
   async listar(req, res) {
     try {
       if (!req.usuario) {
+        registrarErro(new Error('Usuário não autenticado'), 'Listar conversas');
         return res.status(401).json({ erro: 'Usuário não autenticado' });
       }
 
@@ -64,6 +68,7 @@ class ConversaController {
 
       return res.status(200).json(conversas);
     } catch (error) {
+      registrarErro(error, 'Listar conversas');
       return res.status(500).json({
         erro: 'Erro ao listar conversas',
         detalhes: error.message
@@ -77,6 +82,7 @@ class ConversaController {
       const conversa = await Conversa.findById(id);
 
       if (!conversa) {
+        registrarErro(new Error('Conversa não encontrada'), 'Listar mensagens da conversa');
         return res.status(404).json({ erro: 'Conversa não encontrada' });
       }
 
@@ -86,6 +92,7 @@ class ConversaController {
 
       return res.status(200).json(mensagens);
     } catch (error) {
+      registrarErro(error, 'Listar mensagens da conversa');
       return res.status(500).json({
         erro: 'Erro ao listar mensagens',
         detalhes: error.message
@@ -103,6 +110,7 @@ class ConversaController {
       conversa.mensagens.push(mensagemId);
       await conversa.save();
     } catch (error) {
+      registrarErro(error, 'Adicionar mensagem à conversa');
       throw new Error('Erro ao adicionar mensagem à conversa: ' + error.message);
     }
   }

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/Usuario');
+const registrarErro = require('../utils/Logger');
 
 function extrairTokenCookie(cookieHeader) {
     if (!cookieHeader) {
@@ -29,6 +30,7 @@ async function carregarUsuario(req, res, next) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'segredo');
         req.usuario = await Usuario.findById(decoded.id).select('-senha');
     } catch (error) {
+        registrarErro(error, 'Carregar usuário a partir do token');
         req.usuario = null;
     }
 
@@ -37,6 +39,7 @@ async function carregarUsuario(req, res, next) {
 
 async function exigirAutenticacao(req, res, next) {
     if (!req.usuario) {
+        registrarErro(new Error('Usuário não autenticado'), `${req.method} ${req.originalUrl}`);
         return res.redirect('/login');
     }
 

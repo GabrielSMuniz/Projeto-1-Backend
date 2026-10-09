@@ -7,19 +7,17 @@ const form = document.getElementById("formMensagem");
 const lista = document.getElementById("listaMensagens");
 
 const conversaIdInput = document.getElementById("conversaId");
-const usuarioNomeInput = document.getElementById("usuarioNome");
 const textoInput = document.getElementById("texto");
-const btnApagar = document.getElementById("btnApagar");
 const btnLogout = document.getElementById("btnLogout");
 const nomeUsuario = document.getElementById("nomeUsuario");
 
 async function carregarUsuario() {
-    const resposta = await fetch("/api/usuario/");
+    const resposta = await fetch("/api/usuarios/me");
     if (!resposta.ok) {
         alert("Erro ao carregar usuário");
         return;
     }
-
+    console.log(resposta);
     const usuario = await resposta.json();
     nomeUsuario.textContent = usuario.nome || "Usuário desconhecido";
 }
@@ -44,40 +42,34 @@ async function carregarMensagens() {
 
     mensagens.forEach(mensagem => {
         const item = document.createElement("li");
-        const btnApagarMsg = document.createElement("button");
-        btnApagarMsg.textContent = "Apagar";
-        item.appendChild(btnApagarMsg);
-
+        
         const nomeRemetente = mensagem.remetente ? mensagem.remetente.nome : "Deletado";
         item.textContent = `${nomeRemetente}: ${mensagem.conteudo} - ${new Date(mensagem.dataEnvio).toLocaleString()}`;
-
+        
         lista.appendChild(item);
+        const btnApagarMsg = document.createElement("button");
+        btnApagarMsg.textContent = "Apagar";
+        btnApagarMsg.id = mensagem._id;
+        btnApagarMsg.addEventListener("click", async () => {
+            const resposta = await fetch(`/api/mensagens/${mensagem._id}`, {
+                method: "DELETE"
+            });
+
+            if (!resposta.ok) {
+                alert("Erro ao apagar mensagem" + (await resposta.json()).detalhes);
+                return;
+            }
+
+            carregarMensagens();
+        });
+        lista.appendChild(btnApagarMsg);
     });
 }
-
-
-
-btnApagar.addEventListener("click", async () => {
-    const conversaId = conversaIdInput.value;
-    const usuarioNome = usuarioNomeInput.value;
-
-    const resposta = await fetch(`/conversas/${conversaId}/${usuarioNome}/`, {
-        method: "DELETE"
-    });
-
-    if (!resposta.ok) {
-        alert("Erro ao apagar mensagens");
-        return;
-    }
-
-    carregarMensagens();
-});
 
 form.addEventListener("submit", async event => {
     event.preventDefault();
 
     const mensagem = {
-        remetente: usuarioNomeInput.value,
         conteudo: textoInput.value
     };
 
